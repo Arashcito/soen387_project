@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enrollment Summary</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f5f5f5;
+        --accent: #76abae;
+        --text: #303841;
+        --cta: #ff5722;
+        --font-sans: "Rubik", Arial, Helvetica, sans-serif;
+        --border-radius-lg: 10px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        font-family: var(--font-sans);
+        font-weight: 600;
+        color: var(--text);
+        padding: 2rem 1rem;
+        line-height: 1.5;
+      }
+
+      /* ── Header ── */
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 0 1rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      h1 {
+        font-size: 28px;
+        font-weight: 900;
+        color: var(--text);
+      }
+
+      .browse-link {
+        background-color: var(--accent);
+        color: white;
+        padding: 12px 24px;
+        border-radius: var(--border-radius-lg);
+        text-decoration: none;
+        font-weight: 700;
+        transition: background-color 0.3s ease;
+      }
+
+      .browse-link:hover {
+        background-color: #5a9598;
+      }
+
+      /* ── Main content wrapper ── */
+      .main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+      }
+
+      /* ── Warning / info messages ── */
+      .message {
+        margin-bottom: 1.5rem;
+        padding: 14px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .message-warning {
+        background: #fff1eb;
+        color: #b6421d;
+        border: 2px solid #ffd6c8;
+      }
+
+      .message-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+
+      /* ── Empty state ── */
+      .empty-state {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        padding: 3rem 2rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(48, 56, 65, 0.1);
+        border-left: 4px solid var(--accent);
+      }
+
+      .empty-state p {
+        color: #666;
+        font-size: 15px;
+        margin-bottom: 1.5rem;
+      }
+
+      /* ── Table card ── */
+      .table-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 2px 8px rgba(48, 56, 65, 0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      thead {
+        background: #e8f1f1;
+      }
+
+      th {
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text);
+        white-space: nowrap;
+        border-bottom: 2px solid #d0e4e5;
+      }
+
+      td {
+        padding: 14px 16px;
+        font-size: 14px;
+        vertical-align: middle;
+        border-bottom: 1px solid #e5ecec;
+        color: var(--text);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      tbody tr:hover {
+        background: #f9fbfb;
+      }
+
+      /* Course name styling in table */
+      .td-course-name {
+        font-weight: 800;
+        color: var(--text);
+      }
+
+      .td-code {
+        color: #555;
+        font-size: 13px;
+      }
+
+      /* Section badge */
+      .section-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        background: #e8f1f1;
+        color: var(--accent);
+        border: 1px solid #c5dfe0;
+      }
+
+      /* Credit hours input */
+      .credit-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .credit-input {
+        width: 64px;
+        padding: 7px 10px;
+        border: 2px solid var(--accent);
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: var(--font-sans);
+        font-weight: 700;
+        color: var(--text);
+        text-align: center;
+        transition: border-color 0.2s ease;
+      }
+
+      .credit-input:focus {
+        outline: none;
+        border-color: var(--cta);
+        box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
+      }
+
+      /* Cost cells */
+      .td-cost {
+        font-weight: 700;
+        color: #555;
+      }
+
+      .td-total {
+        font-weight: 800;
+        color: var(--text);
+      }
+
+      /* Action buttons */
+      .btn {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        font-family: var(--font-sans);
+        white-space: nowrap;
+      }
+
+      .btn:active {
+        transform: scale(0.97);
+      }
+
+      .btn-update {
+        background-color: var(--accent);
+        color: white;
+      }
+
+      .btn-update:hover {
+        background-color: #5a9598;
+      }
+
+      .btn-remove {
+        background-color: #ff5722;
+        color: white;
+      }
+
+      .btn-remove:hover {
+        background-color: #e64a19;
+      }
+
+      .actions-cell {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      /* ── Totals footer ── */
+      .totals-bar {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 2px 8px rgba(48, 56, 65, 0.1);
+        border-left: 4px solid var(--cta);
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .totals-stats {
+        display: flex;
+        gap: 2.5rem;
+        flex-wrap: wrap;
+      }
+
+      .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .stat-value {
+        font-size: 22px;
+        font-weight: 900;
+        color: var(--text);
+      }
+
+      .stat-value.highlight {
+        color: var(--cta);
+      }
+
+      .confirm-btn {
+        padding: 14px 32px;
+        background-color: var(--cta);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-lg);
+        font-size: 15px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.1s ease;
+        font-family: var(--font-sans);
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .confirm-btn:hover {
+        background-color: #e64a19;
+      }
+
+      .confirm-btn:active {
+        transform: scale(0.98);
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 768px) {
+        header {
+          flex-direction: column;
+          gap: 1.5rem;
+          align-items: flex-start;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        .browse-link {
+          width: 100%;
+          text-align: center;
+        }
+
+        .totals-bar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .confirm-btn {
+          width: 100%;
+          text-align: center;
+        }
+
+        th,
+        td {
+          padding: 10px 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>My Enrollment</h1>
+      <a href="index.html" class="browse-link">&#8592; Continue Browsing</a>
+    </header>
+
+    <div class="main">
+
+      <!-- Warning message (shown when credit hours = 0) -->
+      <div class="message message-warning">
+        <span class="message-icon">&#9888;</span>
+        <span>Credit hours cannot be 0. Please enter a value between 1 and 4.</span>
+      </div>
+
+      <!-- Enrollment table -->
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Course</th>
+                <th>Code</th>
+                <th>Section</th>
+                <th>Credit Hours</th>
+                <th>Cost / Credit</th>
+                <th>Total Cost</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-course-name">Web Development</td>
+                <td class="td-code">SOEN387</td>
+                <td><span class="section-badge">Morning</span></td>
+                <td>
+                  <form action="#" method="post" class="credit-form">
+                    <input
+                      type="number"
+                      name="credits"
+                      class="credit-input"
+                      value="3"
+                      min="1"
+                      max="4"
+                    />
+                    <button type="submit" class="btn btn-update">Update</button>
+                  </form>
+                </td>
+                <td class="td-cost">$150.00</td>
+                <td class="td-total">$450.00</td>
+                <td>
+                  <div class="actions-cell">
+                    <form action="#" method="post">
+                      <button type="submit" class="btn btn-remove">Remove</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="td-course-name">Software Requirements</td>
+                <td class="td-code">SOEN341</td>
+                <td><span class="section-badge">Afternoon</span></td>
+                <td>
+                  <form action="#" method="post" class="credit-form">
+                    <input
+                      type="number"
+                      name="credits"
+                      class="credit-input"
+                      value="4"
+                      min="1"
+                      max="4"
+                    />
+                    <button type="submit" class="btn btn-update">Update</button>
+                  </form>
+                </td>
+                <td class="td-cost">$150.00</td>
+                <td class="td-total">$600.00</td>
+                <td>
+                  <div class="actions-cell">
+                    <form action="#" method="post">
+                      <button type="submit" class="btn btn-remove">Remove</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="td-course-name">Operating Systems</td>
+                <td class="td-code">SOEN228</td>
+                <td><span class="section-badge">Evening</span></td>
+                <td>
+                  <form action="#" method="post" class="credit-form">
+                    <input
+                      type="number"
+                      name="credits"
+                      class="credit-input"
+                      value="3"
+                      min="1"
+                      max="4"
+                    />
+                    <button type="submit" class="btn btn-update">Update</button>
+                  </form>
+                </td>
+                <td class="td-cost">$150.00</td>
+                <td class="td-total">$450.00</td>
+                <td>
+                  <div class="actions-cell">
+                    <form action="#" method="post">
+                      <button type="submit" class="btn btn-remove">Remove</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Totals + Confirm -->
+      <div class="totals-bar">
+        <div class="totals-stats">
+          <div class="stat">
+            <span class="stat-label">Enrolled Courses</span>
+            <span class="stat-value">3</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Total Credit Hours</span>
+            <span class="stat-value">10</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Total Tuition</span>
+            <span class="stat-value highlight">$1,500.00</span>
+          </div>
+        </div>
+        <a href="enrollment-confirmation.html" class="confirm-btn">Confirm Enrollment</a>
+      </div>
+
+    </div>
+  </body>
+</html>

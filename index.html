@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Course Listing</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f5f5f5;
+        --accent: #76abae;
+        --text: #303841;
+        --cta: #ff5722;
+        --font-sans: "Rubik", Arial, Helvetica, sans-serif;
+        --border-radius-lg: 10px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        font-family: var(--font-sans);
+        font-weight: 600;
+        color: var(--text);
+        padding: 2rem 1rem;
+        line-height: 1.5;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 0 1rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      h1 {
+        font-size: 28px;
+        font-weight: 900;
+        color: var(--text);
+      }
+
+      .my-enrollment-link {
+        background-color: var(--accent);
+        color: white;
+        padding: 12px 24px;
+        border-radius: var(--border-radius-lg);
+        text-decoration: none;
+        font-weight: 700;
+        transition: background-color 0.3s ease;
+        cursor: pointer;
+      }
+
+      .my-enrollment-link:hover {
+        background-color: #5a9598;
+      }
+
+      .courses-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 2rem;
+        padding: 0 1rem;
+      }
+
+      .course-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        padding: 1.75rem;
+        box-shadow: 0 2px 8px rgba(48, 56, 65, 0.1);
+        border-left: 4px solid var(--cta);
+        transition: box-shadow 0.3s ease, transform 0.2s ease;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .course-card:hover {
+        box-shadow: 0 6px 16px rgba(48, 56, 65, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .course-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 1rem;
+        line-height: 1.4;
+      }
+
+      .course-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin-bottom: 1.2rem;
+        font-size: 14px;
+        color: var(--text);
+      }
+
+      .course-meta-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      .meta-label {
+        font-weight: 700;
+        color: var(--text);
+        min-width: 110px;
+        flex-shrink: 0;
+      }
+
+      .meta-value {
+        color: #555;
+      }
+
+      .course-description {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        padding: 0.9rem;
+        background: #f9f9f9;
+        border-radius: 6px;
+        border-left: 3px solid var(--accent);
+        flex-grow: 1;
+      }
+
+      .enrollment-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: auto;
+      }
+
+      .section-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.25rem;
+      }
+
+      .section-select {
+        width: 100%;
+        padding: 11px 12px;
+        border: 2px solid var(--accent);
+        border-radius: 6px;
+        font-size: 14px;
+        background-color: white;
+        color: var(--text);
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+        font-family: var(--font-sans);
+      }
+
+      .section-select:hover {
+        border-color: #5a9598;
+      }
+
+      .section-select:focus {
+        outline: none;
+        border-color: var(--cta);
+        box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
+      }
+
+      .enroll-btn {
+        width: 100%;
+        padding: 13px;
+        background-color: var(--cta);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.1s ease;
+        font-family: var(--font-sans);
+      }
+
+      .enroll-btn:hover {
+        background-color: #e64a19;
+      }
+
+      .enroll-btn:active {
+        transform: scale(0.98);
+      }
+
+      @media (max-width: 768px) {
+        .courses-container {
+          grid-template-columns: 1fr;
+        }
+
+        header {
+          flex-direction: column;
+          gap: 1.5rem;
+          align-items: flex-start;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        .my-enrollment-link {
+          align-self: flex-end;
+          width: 100%;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Available Courses</h1>
+      <a href="enrollment-summary.html" class="my-enrollment-link">My Enrollment</a>
+    </header>
+
+    <div class="courses-container">
+      <div class="course-card">
+        <h2 class="course-title">Web Development</h2>
+        <div class="course-meta">
+          <div class="course-meta-item">
+            <span class="meta-label">Course Code:</span>
+            <span class="meta-value">SOEN387</span>
+          </div>
+          <div class="course-meta-item">
+            <span class="meta-label">Instructor:</span>
+            <span class="meta-value">Dr. Smith</span>
+          </div>
+          <div class="course-meta-item">
+            <span class="meta-label">Available Seats:</span>
+            <span class="meta-value">25</span>
+          </div>
+          <div class="course-meta-item">
+            <span class="meta-label">Credit Hours:</span>
+            <span class="meta-value">3</span>
+          </div>
+        </div>
+        <div class="course-description">
+          Introduction to modern web applications and server-side development.
+        </div>
+        <form action="#" method="post" class="enrollment-controls">
+          <label class="section-label" for="section-soen387">Select section</label>
+          <select id="section-soen387" name="section" class="section-select">
+            <option value="">Choose a time slot...</option>
+            <option value="Morning">Morning (9:00 AM - 11:00 AM)</option>
+            <option value="Afternoon">Afternoon (1:00 PM - 3:00 PM)</option>
+            <option value="Evening">Evening (6:00 PM - 8:00 PM)</option>
+          </select>
+          <button class="enroll-btn" type="submit">Enroll</button>
+        </form>
+      </div>
+
+      <div class="course-card">
+        <h2 class="course-title">Software Requirements</h2>
+        <div class="course-meta">
+          <div class="course-meta-item">
+            <span class="meta-label">Course Code:</span>
+            <span class="meta-value">SOEN341</span>
+          </div>
+          <div class="course-meta-item">
+            <span class="meta-label">Instructor:</span>
+            <span class="meta-value">Prof. Ahmed</span>
+          </div>
+          <div class="course-meta-item">
+            <span class="meta-label">Available Seats:</span>
+            <span class="meta-value">18</span>
+          </div>
+          <div class="course-meta-item">
+            <span class="meta-label">Credit Hours:</span>
+            <span class="meta-value">4</span>
+          </div>
+        </div>
+        <div class="course-description">
+          Covers requirements elicitation, analysis, and documentation for
+          software systems.
+        </div>
+        <form action="#" method="post" class="enrollment-controls">
+          <label class="section-label" for="section-soen341">Select section</label>
+          <select id="section-soen341" name="section" class="section-select">
+            <option value="">Choose a time slot...</option>
+            <option value="Morning">Morning (9:00 AM - 11:00 AM)</option>
+            <option value="Afternoon">Afternoon (1:00 PM - 3:00 PM)</option>
+            <option value="Evening">Evening (6:00 PM - 8:00 PM)</option>
+          </select>
+          <button class="enroll-btn" type="submit">Enroll</button>
+        </form>
+      </div>
+
+      <div class="course-card">
+        <h2 class="course-title">Operating Systems</h2>
+        <div class="course-meta">
+          <div class="course-meta-item">
+            <span class="meta-label">Course Code:</span>
+            <span class="meta-value">SOEN228</span>
+          </div>
+          <div class="course-meta-item">
+            <span class="meta-label">Instructor:</span>
+            <span class="meta-value">Dr. Lee</span>
+          </div>
+          <div class="course-meta-item">
+            <span class="meta-label">Available Seats:</span>
+            <span class="meta-value">12</span>
+          </div>
+          <div class="course-meta-item">
+            <span class="meta-label">Credit Hours:</span>
+            <span class="meta-value">3</span>
+          </div>
+        </div>
+        <div class="course-description">
+          Fundamental concepts of processes, threads, memory, scheduling, and
+          file systems.
+        </div>
+        <form action="#" method="post" class="enrollment-controls">
+          <label class="section-label" for="section-soen228">Select section</label>
+          <select id="section-soen228" name="section" class="section-select">
+            <option value="">Choose a time slot...</option>
+            <option value="Morning">Morning (9:00 AM - 11:00 AM)</option>
+            <option value="Afternoon">Afternoon (1:00 PM - 3:00 PM)</option>
+            <option value="Evening">Evening (6:00 PM - 8:00 PM)</option>
+          </select>
+          <button class="enroll-btn" type="submit">Enroll</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
