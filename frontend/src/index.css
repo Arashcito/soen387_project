@@ -1,0 +1,65 @@
+/* ── Global Reset & Base Styles ────────────────────────────── */
+
+:root {
+  --bg:      #f5f5f5;
+  --accent:  #76abae;
+  --text:    #303841;
+  --cta:     #ff5722;
+  --white:   #ffffff;
+  --font:    'Rubik', Arial, Helvetica, sans-serif;
+  --radius:  10px;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: var(--bg);
+  font-family: var(--font);
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* Scrollbar styling (Webkit) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0d4d5;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #76abae;
+}
