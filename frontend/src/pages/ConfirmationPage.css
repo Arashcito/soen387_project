@@ -11,7 +11,7 @@
   background: #ffffff;
   border-radius: 16px;
   padding: 2.5rem 2rem;
-  max-width: 520px;
+  max-width: 700px;
   width: 100%;
   text-align: center;
   box-shadow: 0 8px 32px rgba(48, 56, 65, 0.12);
@@ -87,6 +87,43 @@
 
 .stat-card--accent .stat-value {
   color: #ff5722;
+}
+
+.confirmation-courses {
+  margin-bottom: 1.75rem;
+  text-align: left;
+}
+
+.confirmation-courses-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #303841;
+  margin-bottom: 0.75rem;
+}
+
+.confirmation-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.confirmation-table th {
+  background: #f5f5f5;
+  color: #303841;
+  font-weight: 700;
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.confirmation-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #444;
+}
+
+.confirmation-table tr:last-child td {
+  border-bottom: none;
 }
 
 /* Thank you message */

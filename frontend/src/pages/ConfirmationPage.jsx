@@ -1,12 +1,3 @@
-/**
- * ConfirmationPage
- * Shown after the user clicks "Confirm Enrollment".
- * Displays a success summary using the confirmationData from context.
- *
- * If the user lands here without confirmation data (e.g. direct URL),
- * redirect them back to the home page.
- */
-
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEnrollment, ACTIONS } from '../context/EnrollmentContext';
@@ -17,11 +8,8 @@ const ConfirmationPage = () => {
   const navigate            = useNavigate();
   const data                = state.confirmationData;
 
-  // Guard: must arrive from a real confirmation, not a direct URL visit
   useEffect(() => {
-    if (!data) {
-      navigate('/', { replace: true });
-    }
+    if (!data) navigate('/', { replace: true });
   }, [data, navigate]);
 
   if (!data) return null;
@@ -34,16 +22,13 @@ const ConfirmationPage = () => {
   return (
     <main className="confirmation-page">
       <div className="confirmation-box">
-        {/* Success icon */}
         <div className="success-icon">✓</div>
 
-        {/* Main heading */}
         <h1 className="confirmation-title">Enrollment Confirmed!</h1>
         <p className="confirmation-subtitle">
           Your course registration has been submitted successfully.
         </p>
 
-        {/* Stats */}
         <div className="confirmation-stats">
           <div className="stat-card">
             <span className="stat-label">Courses Enrolled</span>
@@ -55,13 +40,38 @@ const ConfirmationPage = () => {
           </div>
         </div>
 
-        {/* Thank you message */}
+        {data.courses && data.courses.length > 0 && (
+          <div className="confirmation-courses">
+            <h3 className="confirmation-courses-title">Enrolled Courses</h3>
+            <table className="confirmation-table">
+              <thead>
+                <tr>
+                  <th>Course</th>
+                  <th>Code</th>
+                  <th>Section</th>
+                  <th>Credits</th>
+                  <th>Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.courses.map((c, i) => (
+                  <tr key={i}>
+                    <td>{c.title}</td>
+                    <td><span className="code-pill">{c.code}</span></td>
+                    <td>{c.section}</td>
+                    <td>{c.selected_credits}</td>
+                    <td>${parseFloat(c.total_cost).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         <p className="thank-you-message">
-          Thank you for enrolling! A confirmation receipt has been recorded.
-          Please check with the registrar for any further steps.
+          Thank you for enrolling! Please check with the registrar for any further steps.
         </p>
 
-        {/* Action */}
         <button className="btn btn-primary" onClick={handleStartOver}>
           Enroll in More Courses
         </button>

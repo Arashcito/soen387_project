@@ -1,52 +1,42 @@
 /**
- * ============================================================
- * DESIGN PATTERN #2: OBSERVER (Behavioral Pattern)
- * ============================================================
- * Category: Behavioral
- * Purpose: Defines a one-to-many dependency between objects so
- *          that when one object (the Subject) changes state,
- *          all its dependents (Observers) are notified and
- *          updated automatically.
+ * DESIGN PATTERN #2 — OBSERVER (Behavioral)
  *
- * Implementation:
- *   - Subject  → EnrollmentContext (the shared state store)
- *   - Observers → Any React component that calls useEnrollment()
- *                 (CourseList, EnrollmentPage, Navbar badge, etc.)
- *   - Notification mechanism → React's built-in re-render
- *     triggered by useReducer's dispatch.
+ * Subject  → EnrollmentContext (the shared state store)
+ * Observers → Any component that calls useEnrollment()
+ *             (CourseList, EnrollmentPage, Navbar, etc.)
  *
- * When dispatch() is called (e.g. ENROLL, REMOVE, UPDATE),
- * every subscribed observer component automatically re-renders
- * with the latest state — exactly the Observer contract.
- * ============================================================
+ * When dispatch() is called, every subscribed component
+ * automatically re-renders with the latest state —
+ * exactly the Observer contract.
  */
 
 import { createContext, useContext, useReducer } from 'react';
 
-// ── Initial State ─────────────────────────────────────────────
 const initialState = {
-  enrollments: [],          // list of enrolled course objects
-  confirmationData: null,   // summary returned after /confirm
+  enrollments: [],
+  confirmationData: null,
+  costPerCredit: 500,
 };
 
-// ── Action Types ──────────────────────────────────────────────
 export const ACTIONS = {
-  SET_ENROLLMENTS: 'SET_ENROLLMENTS',
-  ADD_ENROLLMENT:  'ADD_ENROLLMENT',
-  UPDATE_ENROLLMENT: 'UPDATE_ENROLLMENT',
-  REMOVE_ENROLLMENT: 'REMOVE_ENROLLMENT',
-  SET_CONFIRMATION: 'SET_CONFIRMATION',
+  SET_ENROLLMENTS:    'SET_ENROLLMENTS',
+  ADD_ENROLLMENT:     'ADD_ENROLLMENT',
+  UPDATE_ENROLLMENT:  'UPDATE_ENROLLMENT',
+  REMOVE_ENROLLMENT:  'REMOVE_ENROLLMENT',
+  SET_CONFIRMATION:   'SET_CONFIRMATION',
   CLEAR_CONFIRMATION: 'CLEAR_CONFIRMATION',
+  SET_CONFIG:         'SET_CONFIG',
 };
 
-// ── Reducer (pure function — no side effects) ─────────────────
 const enrollmentReducer = (state, action) => {
   switch (action.type) {
+    case ACTIONS.SET_CONFIG:
+      return { ...state, costPerCredit: action.payload.cost_per_credit };
+
     case ACTIONS.SET_ENROLLMENTS:
       return { ...state, enrollments: action.payload };
 
     case ACTIONS.ADD_ENROLLMENT:
-      // Prevent duplicate enrollment of the same course
       if (state.enrollments.some((e) => e.course_id === action.payload.course_id)) {
         return state;
       }
@@ -77,13 +67,8 @@ const enrollmentReducer = (state, action) => {
   }
 };
 
-// ── Create Context (the "Subject" in Observer terms) ──────────
 const EnrollmentContext = createContext(null);
 
-/**
- * EnrollmentProvider wraps the whole app so every component
- * can subscribe (observe) enrollment state changes.
- */
 export const EnrollmentProvider = ({ children }) => {
   const [state, dispatch] = useReducer(enrollmentReducer, initialState);
 
@@ -94,11 +79,6 @@ export const EnrollmentProvider = ({ children }) => {
   );
 };
 
-/**
- * useEnrollment — custom hook.
- * Any component calling this hook becomes an Observer:
- * it will re-render automatically whenever the shared state changes.
- */
 export const useEnrollment = () => {
   const context = useContext(EnrollmentContext);
   if (!context) {

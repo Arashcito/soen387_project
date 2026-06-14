@@ -1,17 +1,9 @@
-/**
- * Enrollment Controller
- * Handles HTTP requests for enrollment-related routes.
- */
-
 const Enrollment = require('../models/Enrollment');
+const Course = require('../models/Course');
 
-// Cost per credit hour (read from .env, fallback to 500)
 const COST_PER_CREDIT = parseInt(process.env.COST_PER_CREDIT) || 500;
+const VALID_SECTIONS = ['Morning', 'Afternoon', 'Evening'];
 
-/**
- * GET /api/enrollments
- * Returns all current enrollments (joined with course info).
- */
 const getEnrollments = async (req, res, next) => {
   try {
     const enrollments = await Enrollment.getAllEnrollments();
@@ -21,36 +13,66 @@ const getEnrollments = async (req, res, next) => {
   }
 };
 
-/**
- * POST /api/enrollments
- * Adds a new course enrollment.
- * Body: { course_id, section, selected_credits }
- */
 const addEnrollment = async (req, res, next) => {
   try {
     const { course_id, section, selected_credits } = req.body;
 
-    // Input validation
     if (!course_id || !section || selected_credits === undefined) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: course_id, section, selected_credits',
+        message: 'Missing required fields: course_id, section, selected_credits.',
       });
     }
 
-    if (selected_credits < 0) {
+    if (!VALID_SECTIONS.includes(section)) {
       return res.status(400).json({
         success: false,
-        message: 'Credit hours cannot be negative.',
+        message: `Invalid section. Must be one of: ${VALID_SECTIONS.join(', ')}.`,
+      });
+    }
+
+    const course = await Course.getCourseById(course_id);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found.' });
+    }
+
+    if (course.seats <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No seats available for this course.',
+      });
+    }
+
+    const credits = parseInt(selected_credits, 10);
+    if (isNaN(credits) || credits < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Credit hours must be at least 1.',
+      });
+    }
+    if (credits > course.credit_hours) {
+      return res.status(400).json({
+        success: false,
+        message: `Credit hours cannot exceed the course maximum of ${course.credit_hours}.`,
+      });
+    }
+
+    const existing = await Enrollment.findByCourseId(course_id);
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: 'You are already enrolled in this course.',
       });
     }
 
     const id = await Enrollment.addEnrollment({
       course_id,
       section,
-      selected_credits,
+      selected_credits: credits,
       cost_per_credit: COST_PER_CREDIT,
     });
+
+    await Course.decrementSeats(course_id);
 
     res.status(201).json({
       success: true,
@@ -63,25 +85,39 @@ const addEnrollment = async (req, res, next) => {
   }
 };
 
-/**
- * PUT /api/enrollments/:id
- * Updates the selected credit hours for an existing enrollment.
- * Body: { selected_credits }
- */
 const updateEnrollment = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { selected_credits } = req.body;
 
-    if (selected_credits === undefined || selected_credits < 0) {
+    if (selected_credits === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'selected_credits is required.',
+      });
+    }
+
+    const enrollment = await Enrollment.getEnrollmentById(id);
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: 'Enrollment not found.' });
+    }
+
+    const credits = parseInt(selected_credits, 10);
+    if (isNaN(credits) || credits < 0) {
       return res.status(400).json({
         success: false,
         message: 'Credit hours must be a non-negative number.',
       });
     }
+    if (credits > enrollment.credit_hours) {
+      return res.status(400).json({
+        success: false,
+        message: `Credit hours cannot exceed the course maximum of ${enrollment.credit_hours}.`,
+      });
+    }
 
     await Enrollment.updateEnrollment(id, {
-      selected_credits,
+      selected_credits: credits,
       cost_per_credit: COST_PER_CREDIT,
     });
 
@@ -91,25 +127,24 @@ const updateEnrollment = async (req, res, next) => {
   }
 };
 
-/**
- * DELETE /api/enrollments/:id
- * Removes a specific enrollment by id.
- */
 const deleteEnrollment = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    const enrollment = await Enrollment.getEnrollmentById(id);
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: 'Enrollment not found.' });
+    }
+
     await Enrollment.deleteEnrollment(id);
+    await Course.incrementSeats(enrollment.course_id);
+
     res.json({ success: true, message: 'Enrollment removed.' });
   } catch (err) {
     next(err);
   }
 };
 
-/**
- * POST /api/enrollments/confirm
- * Confirms all enrollments: calculates total cost, clears the enrollments table,
- * and returns a summary to the frontend.
- */
 const confirmEnrollment = async (req, res, next) => {
   try {
     const enrollments = await Enrollment.getAllEnrollments();
@@ -133,6 +168,13 @@ const confirmEnrollment = async (req, res, next) => {
       message: 'Enrollment confirmed successfully!',
       total_courses: enrollments.length,
       total_cost: totalCost,
+      courses: enrollments.map((e) => ({
+        title: e.title,
+        code: e.code,
+        section: e.section,
+        selected_credits: e.selected_credits,
+        total_cost: parseFloat(e.total_cost),
+      })),
     });
   } catch (err) {
     next(err);

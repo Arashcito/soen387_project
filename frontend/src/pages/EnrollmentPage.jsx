@@ -1,15 +1,3 @@
-/**
- * EnrollmentPage
- * Displays the current enrollment "cart" in a table.
- * Allows the user to:
- *   - Update credit hours per course
- *   - Remove a course from the cart
- *   - Confirm all enrollments
- *
- * Observer role: reads from and dispatches to EnrollmentContext.
- * On mount it also fetches enrollments from the backend to stay in sync.
- */
-
 import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -21,38 +9,25 @@ import {
 import { useEnrollment, ACTIONS } from '../context/EnrollmentContext';
 import './EnrollmentPage.css';
 
-const COST_PER_CREDIT = 500;
-
 const EnrollmentPage = () => {
   const { state, dispatch } = useEnrollment();
   const navigate            = useNavigate();
-  const [loading, setLoading]     = useState(true);
+  const costPerCredit       = state.costPerCredit;
+  const [loading, setLoading]       = useState(true);
   const [confirming, setConfirming] = useState(false);
-  const [warnings, setWarnings]   = useState({}); // { [enrollmentId]: message }
+  const [warnings, setWarnings]     = useState({});
 
-  // Sync enrollments from DB on mount (handles page refresh)
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetchEnrollments();
-        dispatch({ type: ACTIONS.SET_ENROLLMENTS, payload: res.data.data });
-      } catch {
-        // silently ignore — local context state will be used
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    fetchEnrollments()
+      .then((res) => dispatch({ type: ACTIONS.SET_ENROLLMENTS, payload: res.data.data }))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  // ── Update credit hours ────────────────────────────────────
   const handleCreditChange = async (enrollment, newCredits) => {
     const credits = parseInt(newCredits, 10);
+    if (isNaN(credits) || credits < 0) return;
 
-    // Prevent negative values silently
-    if (credits < 0) return;
-
-    // Warn if 0 but do NOT remove automatically
     if (credits === 0) {
       setWarnings((prev) => ({
         ...prev,
@@ -66,20 +41,14 @@ const EnrollmentPage = () => {
       });
     }
 
-    // Optimistic UI update
     dispatch({
       type: ACTIONS.UPDATE_ENROLLMENT,
-      payload: {
-        id: enrollment.id,
-        selected_credits: credits,
-        total_cost: credits * COST_PER_CREDIT,
-      },
+      payload: { id: enrollment.id, selected_credits: credits, total_cost: credits * costPerCredit },
     });
 
     try {
       await apiUpdateEnrollment(enrollment.id, { selected_credits: credits });
     } catch {
-      // Revert on failure
       dispatch({
         type: ACTIONS.UPDATE_ENROLLMENT,
         payload: {
@@ -91,24 +60,17 @@ const EnrollmentPage = () => {
     }
   };
 
-  // ── Remove course ──────────────────────────────────────────
   const handleRemove = async (id) => {
     dispatch({ type: ACTIONS.REMOVE_ENROLLMENT, payload: id });
-    setWarnings((prev) => {
-      const updated = { ...prev };
-      delete updated[id];
-      return updated;
-    });
+    setWarnings((prev) => { const u = { ...prev }; delete u[id]; return u; });
     try {
       await apiRemoveEnrollment(id);
     } catch {
-      // If the API call fails, re-sync from server
       const res = await fetchEnrollments();
       dispatch({ type: ACTIONS.SET_ENROLLMENTS, payload: res.data.data });
     }
   };
 
-  // ── Confirm enrollment ─────────────────────────────────────
   const handleConfirm = async () => {
     setConfirming(true);
     try {
@@ -118,6 +80,7 @@ const EnrollmentPage = () => {
         payload: {
           total_courses: res.data.total_courses,
           total_cost:    res.data.total_cost,
+          courses:       res.data.courses,
         },
       });
       navigate('/confirmation');
@@ -128,12 +91,8 @@ const EnrollmentPage = () => {
     }
   };
 
-  // ── Derived values ─────────────────────────────────────────
-  const enrollments  = state.enrollments;
-  const grandTotal   = enrollments.reduce(
-    (sum, e) => sum + parseFloat(e.total_cost || 0),
-    0
-  );
+  const enrollments = state.enrollments;
+  const grandTotal  = enrollments.reduce((sum, e) => sum + parseFloat(e.total_cost || 0), 0);
 
   if (loading) {
     return (
@@ -160,7 +119,6 @@ const EnrollmentPage = () => {
         </div>
       ) : (
         <>
-          {/* Enrollment table */}
           <div className="table-wrap">
             <table className="enrollment-table">
               <thead>
@@ -179,43 +137,32 @@ const EnrollmentPage = () => {
                   <Fragment key={enrollment.id}>
                     <tr className="enrollment-row">
                       <td className="course-name-cell">{enrollment.title}</td>
-                      <td>
-                        <span className="code-pill">{enrollment.code}</span>
-                      </td>
-                      <td>
-                        <span className="section-tag">{enrollment.section}</span>
-                      </td>
+                      <td><span className="code-pill">{enrollment.code}</span></td>
+                      <td><span className="section-tag">{enrollment.section}</span></td>
                       <td>
                         <input
                           type="number"
                           className="credits-input"
                           value={enrollment.selected_credits}
                           min="0"
-                          max="6"
+                          max={enrollment.credit_hours || 6}
                           onChange={(e) => handleCreditChange(enrollment, e.target.value)}
                         />
                       </td>
-                      <td>${COST_PER_CREDIT.toLocaleString()}</td>
+                      <td>${costPerCredit.toLocaleString()}</td>
                       <td className="cost-cell">
                         ${parseFloat(enrollment.total_cost || 0).toLocaleString()}
                       </td>
                       <td>
-                        <button
-                          className="btn btn-danger"
-                          onClick={() => handleRemove(enrollment.id)}
-                        >
+                        <button className="btn btn-danger" onClick={() => handleRemove(enrollment.id)}>
                           Remove
                         </button>
                       </td>
                     </tr>
-
-                    {/* Zero-credit warning row */}
                     {warnings[enrollment.id] && (
                       <tr className="warning-row">
                         <td colSpan={7}>
-                          <div className="inline-warning">
-                            ⚠️ {warnings[enrollment.id]}
-                          </div>
+                          <div className="inline-warning">⚠️ {warnings[enrollment.id]}</div>
                         </td>
                       </tr>
                     )}
@@ -225,7 +172,6 @@ const EnrollmentPage = () => {
             </table>
           </div>
 
-          {/* Summary footer */}
           <div className="enrollment-footer">
             <div className="grand-total">
               <span>Total Tuition Cost:</span>

@@ -21,7 +21,6 @@
   opacity: 0.88;
 }
 
-/* Enrolled badge in top-right corner */
 .enrolled-badge {
   position: absolute;
   top: 14px;
@@ -33,6 +32,10 @@
   padding: 3px 10px;
   border-radius: 20px;
   letter-spacing: 0.03em;
+}
+
+.enrolled-badge--full {
+  background: #e64a19;
 }
 
 /* Course title */
