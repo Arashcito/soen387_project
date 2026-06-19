@@ -39,6 +39,7 @@ CREATE TABLE enrollments (
   section          ENUM('Morning', 'Afternoon', 'Evening') NOT NULL DEFAULT 'Morning',
   selected_credits INT      NOT NULL DEFAULT 3,
   total_cost       DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  status           ENUM('pending', 'confirmed') NOT NULL DEFAULT 'pending',
   enrolled_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
   FOREIGN KEY (course_id)  REFERENCES courses(id)  ON DELETE CASCADE,

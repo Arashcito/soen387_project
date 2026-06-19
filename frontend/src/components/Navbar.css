@@ -48,6 +48,22 @@
   color: #ff5722;
 }
 
+.navbar-link {
+  color: #303841;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.navbar-link:hover,
+.navbar-link.active {
+  background: #e8f1f1;
+  color: #2f5d61;
+}
+
 .navbar-brand {
   display: flex;
   align-items: center;

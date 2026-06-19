@@ -10,6 +10,7 @@ import SignupPage       from './pages/SignupPage';
 import CourseList       from './pages/CourseList';
 import EnrollmentPage   from './pages/EnrollmentPage';
 import ConfirmationPage from './pages/ConfirmationPage';
+import MyClassesPage    from './pages/MyClassesPage';
 import './index.css';
 
 const AppInit = () => {
@@ -23,10 +24,10 @@ const AppInit = () => {
       .catch(() => {});
   }, []);
 
-  // Whenever a student logs in, reload their existing enrollments from the DB
+  // Whenever a student logs in, reload their pending (cart) enrollments from the DB
   useEffect(() => {
     if (!student) return;
-    fetchEnrollments(student.id)
+    fetchEnrollments(student.id, 'pending')
       .then((res) => dispatch({ type: ACTIONS.SET_ENROLLMENTS, payload: res.data.data }))
       .catch(() => {});
   }, [student]);
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/"             element={<ProtectedRoute><CourseList /></ProtectedRoute>} />
                 <Route path="/enrollment"   element={<ProtectedRoute><EnrollmentPage /></ProtectedRoute>} />
                 <Route path="/confirmation" element={<ProtectedRoute><ConfirmationPage /></ProtectedRoute>} />
+                <Route path="/my-classes"   element={<ProtectedRoute><MyClassesPage /></ProtectedRoute>} />
                 <Route path="*"             element={<ProtectedRoute><CourseList /></ProtectedRoute>} />
               </Routes>
             </>

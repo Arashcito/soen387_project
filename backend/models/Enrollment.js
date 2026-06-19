@@ -1,6 +1,6 @@
 const getPool = require('../config/db');
 
-const getAllEnrollments = async (student_id) => {
+const getEnrollmentsByStatus = async (student_id, status) => {
   const db = getPool();
   const [rows] = await db.query(`
     SELECT
@@ -8,7 +8,9 @@ const getAllEnrollments = async (student_id) => {
       e.section,
       e.selected_credits,
       e.total_cost,
-      c.id        AS course_id,
+      e.status,
+      e.enrolled_at,
+      c.id          AS course_id,
       c.title,
       c.code,
       c.instructor,
@@ -16,9 +18,9 @@ const getAllEnrollments = async (student_id) => {
       c.description
     FROM enrollments e
     JOIN courses c ON e.course_id = c.id
-    WHERE e.student_id = ?
+    WHERE e.student_id = ? AND e.status = ?
     ORDER BY e.id ASC
-  `, [student_id]);
+  `, [student_id, status]);
   return rows;
 };
 
@@ -62,22 +64,25 @@ const updateEnrollment = async (id, { selected_credits, cost_per_credit }) => {
   );
 };
 
+const confirmAllPending = async (student_id) => {
+  const db = getPool();
+  await db.query(
+    `UPDATE enrollments SET status = 'confirmed' WHERE student_id = ? AND status = 'pending'`,
+    [student_id]
+  );
+};
+
 const deleteEnrollment = async (id) => {
   const db = getPool();
   await db.query('DELETE FROM enrollments WHERE id = ?', [id]);
 };
 
-const deleteAllEnrollments = async (student_id) => {
-  const db = getPool();
-  await db.query('DELETE FROM enrollments WHERE student_id = ?', [student_id]);
-};
-
 module.exports = {
-  getAllEnrollments,
+  getEnrollmentsByStatus,
   getEnrollmentById,
   findByCourseId,
   addEnrollment,
   updateEnrollment,
+  confirmAllPending,
   deleteEnrollment,
-  deleteAllEnrollments,
 };

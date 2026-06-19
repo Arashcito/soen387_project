@@ -2,21 +2,23 @@ const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 
 const COST_PER_CREDIT = parseInt(process.env.COST_PER_CREDIT) || 500;
-const VALID_SECTIONS = ['Morning', 'Afternoon', 'Evening'];
+const VALID_SECTIONS  = ['Morning', 'Afternoon', 'Evening'];
 
+// GET /api/enrollments?student_id=X&status=pending|confirmed
 const getEnrollments = async (req, res, next) => {
   try {
-    const { student_id } = req.query;
+    const { student_id, status = 'pending' } = req.query;
     if (!student_id) {
       return res.status(400).json({ success: false, message: 'student_id is required.' });
     }
-    const enrollments = await Enrollment.getAllEnrollments(student_id);
+    const enrollments = await Enrollment.getEnrollmentsByStatus(student_id, status);
     res.json({ success: true, data: enrollments });
   } catch (err) {
     next(err);
   }
 };
 
+// POST /api/enrollments
 const addEnrollment = async (req, res, next) => {
   try {
     const { student_id, course_id, section, selected_credits } = req.body;
@@ -39,7 +41,6 @@ const addEnrollment = async (req, res, next) => {
     if (!course) {
       return res.status(404).json({ success: false, message: 'Course not found.' });
     }
-
     if (course.seats <= 0) {
       return res.status(400).json({ success: false, message: 'No seats available for this course.' });
     }
@@ -61,9 +62,7 @@ const addEnrollment = async (req, res, next) => {
     }
 
     const id = await Enrollment.addEnrollment({
-      student_id,
-      course_id,
-      section,
+      student_id, course_id, section,
       selected_credits: credits,
       cost_per_credit: COST_PER_CREDIT,
     });
@@ -81,6 +80,7 @@ const addEnrollment = async (req, res, next) => {
   }
 };
 
+// PUT /api/enrollments/:id
 const updateEnrollment = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -113,6 +113,7 @@ const updateEnrollment = async (req, res, next) => {
   }
 };
 
+// DELETE /api/enrollments/:id
 const deleteEnrollment = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -131,6 +132,7 @@ const deleteEnrollment = async (req, res, next) => {
   }
 };
 
+// POST /api/enrollments/confirm
 const confirmEnrollment = async (req, res, next) => {
   try {
     const { student_id } = req.body;
@@ -138,20 +140,22 @@ const confirmEnrollment = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'student_id is required.' });
     }
 
-    const enrollments = await Enrollment.getAllEnrollments(student_id);
-    if (enrollments.length === 0) {
+    const pending = await Enrollment.getEnrollmentsByStatus(student_id, 'pending');
+    if (pending.length === 0) {
       return res.status(400).json({ success: false, message: 'No enrollments to confirm.' });
     }
 
-    const totalCost = enrollments.reduce((sum, e) => sum + parseFloat(e.total_cost), 0);
-    await Enrollment.deleteAllEnrollments(student_id);
+    const totalCost = pending.reduce((sum, e) => sum + parseFloat(e.total_cost), 0);
+
+    // Mark as confirmed — keep them in DB so My Classes can show them
+    await Enrollment.confirmAllPending(student_id);
 
     res.json({
       success: true,
       message: 'Enrollment confirmed successfully!',
-      total_courses: enrollments.length,
+      total_courses: pending.length,
       total_cost: totalCost,
-      courses: enrollments.map((e) => ({
+      courses: pending.map((e) => ({
         title:            e.title,
         code:             e.code,
         section:          e.section,

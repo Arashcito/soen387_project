@@ -8,7 +8,7 @@ const api = axios.create({
 export const fetchConfig        = ()              => api.get('/config');
 export const loginStudent       = (payload)       => api.post('/auth/login', payload);
 export const fetchCourses       = ()              => api.get('/courses');
-export const fetchEnrollments   = (student_id)    => api.get(`/enrollments?student_id=${student_id}`);
+export const fetchEnrollments   = (student_id, status = 'pending') => api.get(`/enrollments?student_id=${student_id}&status=${status}`);
 export const enrollCourse       = (payload)       => api.post('/enrollments', payload);
 export const updateEnrollment   = (id, data)      => api.put(`/enrollments/${id}`, data);
 export const removeEnrollment   = (id)            => api.delete(`/enrollments/${id}`);

@@ -20,7 +20,7 @@ const EnrollmentPage = () => {
   const [warnings, setWarnings]     = useState({});
 
   useEffect(() => {
-    fetchEnrollments(student.id)
+    fetchEnrollments(student.id, 'pending')
       .then((res) => dispatch({ type: ACTIONS.SET_ENROLLMENTS, payload: res.data.data }))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -68,7 +68,7 @@ const EnrollmentPage = () => {
     try {
       await apiRemoveEnrollment(id);
     } catch {
-      const res = await fetchEnrollments(student.id);
+      const res = await fetchEnrollments(student.id, 'pending');
       dispatch({ type: ACTIONS.SET_ENROLLMENTS, payload: res.data.data });
     }
   };
