@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { EnrollmentProvider, useEnrollment, ACTIONS } from './context/EnrollmentContext';
-import { AuthProvider } from './context/AuthContext';
-import { fetchConfig } from './services/api';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { fetchConfig, fetchEnrollments } from './services/api';
 import ProtectedRoute   from './components/ProtectedRoute';
 import Navbar           from './components/Navbar';
 import LoginPage        from './pages/LoginPage';
@@ -13,12 +13,24 @@ import ConfirmationPage from './pages/ConfirmationPage';
 import './index.css';
 
 const AppInit = () => {
-  const { dispatch } = useEnrollment();
+  const { dispatch }  = useEnrollment();
+  const { student }   = useAuth();
+
+  // Fetch config (cost per credit) once on startup
   useEffect(() => {
     fetchConfig()
       .then((res) => dispatch({ type: ACTIONS.SET_CONFIG, payload: res.data }))
       .catch(() => {});
   }, []);
+
+  // Whenever a student logs in, reload their existing enrollments from the DB
+  useEffect(() => {
+    if (!student) return;
+    fetchEnrollments(student.id)
+      .then((res) => dispatch({ type: ACTIONS.SET_ENROLLMENTS, payload: res.data.data }))
+      .catch(() => {});
+  }, [student]);
+
   return null;
 };
 
@@ -34,10 +46,10 @@ const App = () => (
             <>
               <Navbar />
               <Routes>
-                <Route path="/" element={<ProtectedRoute><CourseList /></ProtectedRoute>} />
-                <Route path="/enrollment" element={<ProtectedRoute><EnrollmentPage /></ProtectedRoute>} />
+                <Route path="/"             element={<ProtectedRoute><CourseList /></ProtectedRoute>} />
+                <Route path="/enrollment"   element={<ProtectedRoute><EnrollmentPage /></ProtectedRoute>} />
                 <Route path="/confirmation" element={<ProtectedRoute><ConfirmationPage /></ProtectedRoute>} />
-                <Route path="*" element={<ProtectedRoute><CourseList /></ProtectedRoute>} />
+                <Route path="*"             element={<ProtectedRoute><CourseList /></ProtectedRoute>} />
               </Routes>
             </>
           } />

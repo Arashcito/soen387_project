@@ -4,8 +4,15 @@
 CREATE DATABASE IF NOT EXISTS soen387_assignment2;
 USE soen387_assignment2;
 
+-- Drop in reverse FK order so constraints don't block
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS enrollments;
+DROP TABLE IF EXISTS courses;
+DROP TABLE IF EXISTS students;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- ── students ─────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE students (
   id         INT          AUTO_INCREMENT PRIMARY KEY,
   name       VARCHAR(255) NOT NULL,
   email      VARCHAR(255) NOT NULL UNIQUE,
@@ -14,7 +21,7 @@ CREATE TABLE IF NOT EXISTS students (
 );
 
 -- ── courses ──────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS courses (
+CREATE TABLE courses (
   id           INT          AUTO_INCREMENT PRIMARY KEY,
   title        VARCHAR(255) NOT NULL,
   code         VARCHAR(50)  NOT NULL UNIQUE,
@@ -25,7 +32,7 @@ CREATE TABLE IF NOT EXISTS courses (
 );
 
 -- ── enrollments ──────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS enrollments (
+CREATE TABLE enrollments (
   id               INT      AUTO_INCREMENT PRIMARY KEY,
   student_id       INT      NOT NULL,
   course_id        INT      NOT NULL,
@@ -39,12 +46,6 @@ CREATE TABLE IF NOT EXISTS enrollments (
 );
 
 -- ── Seed Data ─────────────────────────────────────────────────
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE enrollments;
-TRUNCATE TABLE courses;
-TRUNCATE TABLE students;
-SET FOREIGN_KEY_CHECKS = 1;
-
 INSERT INTO students (name, email, password) VALUES
 ('Alice Johnson',  'alice@concordia.ca',   'pass123'),
 ('Bob Smith',      'bob@concordia.ca',     'pass123'),
