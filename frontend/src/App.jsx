@@ -6,6 +6,7 @@ import { fetchConfig } from './services/api';
 import ProtectedRoute   from './components/ProtectedRoute';
 import Navbar           from './components/Navbar';
 import LoginPage        from './pages/LoginPage';
+import SignupPage       from './pages/SignupPage';
 import CourseList       from './pages/CourseList';
 import EnrollmentPage   from './pages/EnrollmentPage';
 import ConfirmationPage from './pages/ConfirmationPage';
@@ -27,7 +28,8 @@ const App = () => (
       <BrowserRouter>
         <AppInit />
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login"  element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route path="/*" element={
             <>
               <Navbar />

@@ -12,4 +12,13 @@ const findById = async (id) => {
   return rows[0] || null;
 };
 
-module.exports = { findByEmail, findById };
+const createStudent = async ({ name, email, password }) => {
+  const db = getPool();
+  const [result] = await db.query(
+    'INSERT INTO students (name, email, password) VALUES (?, ?, ?)',
+    [name, email, password]
+  );
+  return result.insertId;
+};
+
+module.exports = { findByEmail, findById, createStudent };

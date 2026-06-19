@@ -4,44 +4,60 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import './LoginPage.css';
 
-const LoginPage = () => {
-  const { login } = useAuth();
+const SignupPage = () => {
+  const { login }  = useAuth();
   const navigate   = useNavigate();
+  const [name, setName]         = useState('');
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm]   = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirm) {
+      setError('Passwords do not match.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
+      const res = await axios.post('/api/auth/register', { name, email, password });
       login(res.data.student);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Sign up failed. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemo = (demoEmail) => {
-    setEmail(demoEmail);
-    setPassword('pass123');
   };
 
   return (
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">🎓</div>
-        <h1 className="login-title">Course Enrollment</h1>
-        <p className="login-subtitle">Sign in to manage your courses</p>
+        <h1 className="login-title">Create Account</h1>
+        <p className="login-subtitle">Join and start enrolling in courses</p>
 
         {error && <div className="login-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="login-form">
+          <div className="form-group">
+            <label htmlFor="name">Full Name</label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. John Doe"
+              required
+              autoFocus
+            />
+          </div>
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -51,7 +67,6 @@ const LoginPage = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@concordia.ca"
               required
-              autoFocus
             />
           </div>
 
@@ -62,38 +77,35 @@ const LoginPage = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="At least 6 characters"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirm">Confirm Password</label>
+            <input
+              id="confirm"
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder="Repeat your password"
               required
             />
           </div>
 
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? 'Creating account…' : 'Create Account'}
           </button>
         </form>
 
         <p className="auth-switch">
-          Don't have an account?{' '}
-          <Link to="/signup" className="auth-switch-link">Sign Up</Link>
+          Already have an account?{' '}
+          <Link to="/login" className="auth-switch-link">Sign In</Link>
         </p>
-
-        <div className="demo-accounts">
-          <p className="demo-label">Demo Accounts (password: pass123)</p>
-          <div className="demo-buttons">
-            <button onClick={() => fillDemo('alice@concordia.ca')} className="demo-btn">
-              Alice Johnson
-            </button>
-            <button onClick={() => fillDemo('bob@concordia.ca')} className="demo-btn">
-              Bob Smith
-            </button>
-            <button onClick={() => fillDemo('charlie@concordia.ca')} className="demo-btn">
-              Charlie Brown
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default SignupPage;
