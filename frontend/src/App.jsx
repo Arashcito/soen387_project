@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { EnrollmentProvider, useEnrollment, ACTIONS } from './context/EnrollmentContext';
+import { AuthProvider } from './context/AuthContext';
 import { fetchConfig } from './services/api';
+import ProtectedRoute   from './components/ProtectedRoute';
 import Navbar           from './components/Navbar';
+import LoginPage        from './pages/LoginPage';
 import CourseList       from './pages/CourseList';
 import EnrollmentPage   from './pages/EnrollmentPage';
 import ConfirmationPage from './pages/ConfirmationPage';
@@ -10,29 +13,36 @@ import './index.css';
 
 const AppInit = () => {
   const { dispatch } = useEnrollment();
-
   useEffect(() => {
     fetchConfig()
       .then((res) => dispatch({ type: ACTIONS.SET_CONFIG, payload: res.data }))
       .catch(() => {});
   }, []);
-
   return null;
 };
 
 const App = () => (
-  <EnrollmentProvider>
-    <BrowserRouter>
-      <AppInit />
-      <Navbar />
-      <Routes>
-        <Route path="/"             element={<CourseList />} />
-        <Route path="/enrollment"   element={<EnrollmentPage />} />
-        <Route path="/confirmation" element={<ConfirmationPage />} />
-        <Route path="*"             element={<CourseList />} />
-      </Routes>
-    </BrowserRouter>
-  </EnrollmentProvider>
+  <AuthProvider>
+    <EnrollmentProvider>
+      <BrowserRouter>
+        <AppInit />
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/*" element={
+            <>
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<ProtectedRoute><CourseList /></ProtectedRoute>} />
+                <Route path="/enrollment" element={<ProtectedRoute><EnrollmentPage /></ProtectedRoute>} />
+                <Route path="/confirmation" element={<ProtectedRoute><ConfirmationPage /></ProtectedRoute>} />
+                <Route path="*" element={<ProtectedRoute><CourseList /></ProtectedRoute>} />
+              </Routes>
+            </>
+          } />
+        </Routes>
+      </BrowserRouter>
+    </EnrollmentProvider>
+  </AuthProvider>
 );
 
 export default App;

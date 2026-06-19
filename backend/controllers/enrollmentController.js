@@ -6,7 +6,11 @@ const VALID_SECTIONS = ['Morning', 'Afternoon', 'Evening'];
 
 const getEnrollments = async (req, res, next) => {
   try {
-    const enrollments = await Enrollment.getAllEnrollments();
+    const { student_id } = req.query;
+    if (!student_id) {
+      return res.status(400).json({ success: false, message: 'student_id is required.' });
+    }
+    const enrollments = await Enrollment.getAllEnrollments(student_id);
     res.json({ success: true, data: enrollments });
   } catch (err) {
     next(err);
@@ -15,12 +19,12 @@ const getEnrollments = async (req, res, next) => {
 
 const addEnrollment = async (req, res, next) => {
   try {
-    const { course_id, section, selected_credits } = req.body;
+    const { student_id, course_id, section, selected_credits } = req.body;
 
-    if (!course_id || !section || selected_credits === undefined) {
+    if (!student_id || !course_id || !section || selected_credits === undefined) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: course_id, section, selected_credits.',
+        message: 'Missing required fields: student_id, course_id, section, selected_credits.',
       });
     }
 
@@ -37,18 +41,12 @@ const addEnrollment = async (req, res, next) => {
     }
 
     if (course.seats <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No seats available for this course.',
-      });
+      return res.status(400).json({ success: false, message: 'No seats available for this course.' });
     }
 
     const credits = parseInt(selected_credits, 10);
     if (isNaN(credits) || credits < 1) {
-      return res.status(400).json({
-        success: false,
-        message: 'Credit hours must be at least 1.',
-      });
+      return res.status(400).json({ success: false, message: 'Credit hours must be at least 1.' });
     }
     if (credits > course.credit_hours) {
       return res.status(400).json({
@@ -57,15 +55,13 @@ const addEnrollment = async (req, res, next) => {
       });
     }
 
-    const existing = await Enrollment.findByCourseId(course_id);
+    const existing = await Enrollment.findByCourseId(course_id, student_id);
     if (existing) {
-      return res.status(409).json({
-        success: false,
-        message: 'You are already enrolled in this course.',
-      });
+      return res.status(409).json({ success: false, message: 'You are already enrolled in this course.' });
     }
 
     const id = await Enrollment.addEnrollment({
+      student_id,
       course_id,
       section,
       selected_credits: credits,
@@ -91,10 +87,7 @@ const updateEnrollment = async (req, res, next) => {
     const { selected_credits } = req.body;
 
     if (selected_credits === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: 'selected_credits is required.',
-      });
+      return res.status(400).json({ success: false, message: 'selected_credits is required.' });
     }
 
     const enrollment = await Enrollment.getEnrollmentById(id);
@@ -104,10 +97,7 @@ const updateEnrollment = async (req, res, next) => {
 
     const credits = parseInt(selected_credits, 10);
     if (isNaN(credits) || credits < 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Credit hours must be a non-negative number.',
-      });
+      return res.status(400).json({ success: false, message: 'Credit hours must be a non-negative number.' });
     }
     if (credits > enrollment.credit_hours) {
       return res.status(400).json({
@@ -116,11 +106,7 @@ const updateEnrollment = async (req, res, next) => {
       });
     }
 
-    await Enrollment.updateEnrollment(id, {
-      selected_credits: credits,
-      cost_per_credit: COST_PER_CREDIT,
-    });
-
+    await Enrollment.updateEnrollment(id, { selected_credits: credits, cost_per_credit: COST_PER_CREDIT });
     res.json({ success: true, message: 'Enrollment updated successfully.' });
   } catch (err) {
     next(err);
@@ -147,21 +133,18 @@ const deleteEnrollment = async (req, res, next) => {
 
 const confirmEnrollment = async (req, res, next) => {
   try {
-    const enrollments = await Enrollment.getAllEnrollments();
-
-    if (enrollments.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No enrollments to confirm.',
-      });
+    const { student_id } = req.body;
+    if (!student_id) {
+      return res.status(400).json({ success: false, message: 'student_id is required.' });
     }
 
-    const totalCost = enrollments.reduce(
-      (sum, e) => sum + parseFloat(e.total_cost),
-      0
-    );
+    const enrollments = await Enrollment.getAllEnrollments(student_id);
+    if (enrollments.length === 0) {
+      return res.status(400).json({ success: false, message: 'No enrollments to confirm.' });
+    }
 
-    await Enrollment.deleteAllEnrollments();
+    const totalCost = enrollments.reduce((sum, e) => sum + parseFloat(e.total_cost), 0);
+    await Enrollment.deleteAllEnrollments(student_id);
 
     res.json({
       success: true,
@@ -169,11 +152,11 @@ const confirmEnrollment = async (req, res, next) => {
       total_courses: enrollments.length,
       total_cost: totalCost,
       courses: enrollments.map((e) => ({
-        title: e.title,
-        code: e.code,
-        section: e.section,
+        title:            e.title,
+        code:             e.code,
+        section:          e.section,
         selected_credits: e.selected_credits,
-        total_cost: parseFloat(e.total_cost),
+        total_cost:       parseFloat(e.total_cost),
       })),
     });
   } catch (err) {
@@ -181,10 +164,4 @@ const confirmEnrollment = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  getEnrollments,
-  addEnrollment,
-  updateEnrollment,
-  deleteEnrollment,
-  confirmEnrollment,
-};
+module.exports = { getEnrollments, addEnrollment, updateEnrollment, deleteEnrollment, confirmEnrollment };

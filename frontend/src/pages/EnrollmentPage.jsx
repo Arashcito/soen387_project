@@ -7,10 +7,12 @@ import {
   confirmEnrollments as apiConfirmEnrollments,
 } from '../services/api';
 import { useEnrollment, ACTIONS } from '../context/EnrollmentContext';
+import { useAuth } from '../context/AuthContext';
 import './EnrollmentPage.css';
 
 const EnrollmentPage = () => {
   const { state, dispatch } = useEnrollment();
+  const { student }         = useAuth();
   const navigate            = useNavigate();
   const costPerCredit       = state.costPerCredit;
   const [loading, setLoading]       = useState(true);
@@ -18,7 +20,7 @@ const EnrollmentPage = () => {
   const [warnings, setWarnings]     = useState({});
 
   useEffect(() => {
-    fetchEnrollments()
+    fetchEnrollments(student.id)
       .then((res) => dispatch({ type: ACTIONS.SET_ENROLLMENTS, payload: res.data.data }))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -66,7 +68,7 @@ const EnrollmentPage = () => {
     try {
       await apiRemoveEnrollment(id);
     } catch {
-      const res = await fetchEnrollments();
+      const res = await fetchEnrollments(student.id);
       dispatch({ type: ACTIONS.SET_ENROLLMENTS, payload: res.data.data });
     }
   };
@@ -74,7 +76,7 @@ const EnrollmentPage = () => {
   const handleConfirm = async () => {
     setConfirming(true);
     try {
-      const res = await apiConfirmEnrollments();
+      const res = await apiConfirmEnrollments({ student_id: student.id });
       dispatch({
         type: ACTIONS.SET_CONFIRMATION,
         payload: {

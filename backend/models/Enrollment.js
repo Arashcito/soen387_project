@@ -1,6 +1,6 @@
 const getPool = require('../config/db');
 
-const getAllEnrollments = async () => {
+const getAllEnrollments = async (student_id) => {
   const db = getPool();
   const [rows] = await db.query(`
     SELECT
@@ -16,15 +16,16 @@ const getAllEnrollments = async () => {
       c.description
     FROM enrollments e
     JOIN courses c ON e.course_id = c.id
+    WHERE e.student_id = ?
     ORDER BY e.id ASC
-  `);
+  `, [student_id]);
   return rows;
 };
 
 const getEnrollmentById = async (id) => {
   const db = getPool();
   const [rows] = await db.query(`
-    SELECT e.*, c.credit_hours, c.title, c.course_id AS c_course_id
+    SELECT e.*, c.credit_hours, c.title
     FROM enrollments e
     JOIN courses c ON e.course_id = c.id
     WHERE e.id = ?
@@ -32,22 +33,22 @@ const getEnrollmentById = async (id) => {
   return rows[0] || null;
 };
 
-const findByCourseId = async (course_id) => {
+const findByCourseId = async (course_id, student_id) => {
   const db = getPool();
   const [rows] = await db.query(
-    'SELECT id FROM enrollments WHERE course_id = ?',
-    [course_id]
+    'SELECT id FROM enrollments WHERE course_id = ? AND student_id = ?',
+    [course_id, student_id]
   );
   return rows[0] || null;
 };
 
-const addEnrollment = async ({ course_id, section, selected_credits, cost_per_credit }) => {
+const addEnrollment = async ({ student_id, course_id, section, selected_credits, cost_per_credit }) => {
   const db = getPool();
   const total_cost = selected_credits * cost_per_credit;
   const [result] = await db.query(
-    `INSERT INTO enrollments (course_id, section, selected_credits, total_cost)
-     VALUES (?, ?, ?, ?)`,
-    [course_id, section, selected_credits, total_cost]
+    `INSERT INTO enrollments (student_id, course_id, section, selected_credits, total_cost)
+     VALUES (?, ?, ?, ?, ?)`,
+    [student_id, course_id, section, selected_credits, total_cost]
   );
   return result.insertId;
 };
@@ -66,9 +67,9 @@ const deleteEnrollment = async (id) => {
   await db.query('DELETE FROM enrollments WHERE id = ?', [id]);
 };
 
-const deleteAllEnrollments = async () => {
+const deleteAllEnrollments = async (student_id) => {
   const db = getPool();
-  await db.query('DELETE FROM enrollments');
+  await db.query('DELETE FROM enrollments WHERE student_id = ?', [student_id]);
 };
 
 module.exports = {

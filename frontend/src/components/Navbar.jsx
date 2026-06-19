@@ -1,42 +1,47 @@
-/**
- * Navbar Component
- * Displays the site title and a link to the enrollment page with a badge
- * showing the number of currently enrolled courses.
- *
- * This component is an Observer — it subscribes to EnrollmentContext
- * and re-renders whenever the enrollment count changes.
- */
-
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEnrollment } from '../context/EnrollmentContext';
+import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { state } = useEnrollment(); // Observer: subscribed to global state
-  const count = state.enrollments.length;
+  const { state } = useEnrollment();
+  const { student, logout } = useAuth();
+  const count    = state.enrollments.length;
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <header className="navbar">
       <div className="navbar-inner">
-        {/* Site Title */}
         <Link to="/" className="navbar-brand">
           <span className="navbar-logo">🎓</span>
           <span>Course Enrollment</span>
         </Link>
 
-        {/* My Enrollment link with badge */}
-        <Link
-          to="/enrollment"
-          className={`navbar-enrollment-link ${
-            location.pathname === '/enrollment' ? 'active' : ''
-          }`}
-        >
-          My Enrollment
-          {count > 0 && (
-            <span className="enrollment-badge">{count}</span>
+        <div className="navbar-right">
+          {student && (
+            <span className="navbar-student">👤 {student.name}</span>
           )}
-        </Link>
+
+          <Link
+            to="/enrollment"
+            className={`navbar-enrollment-link ${location.pathname === '/enrollment' ? 'active' : ''}`}
+          >
+            My Enrollment
+            {count > 0 && <span className="enrollment-badge">{count}</span>}
+          </Link>
+
+          {student && (
+            <button className="logout-btn" onClick={handleLogout}>
+              Sign Out
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );

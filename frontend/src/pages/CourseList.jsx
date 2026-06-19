@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchCourses, enrollCourse } from '../services/api';
 import { useEnrollment, ACTIONS } from '../context/EnrollmentContext';
+import { useAuth } from '../context/AuthContext';
 import CourseCard from '../components/CourseCard';
 import './CourseList.css';
 
@@ -10,6 +11,7 @@ const CourseList = () => {
   const [error, setError]     = useState(null);
   const [message, setMessage] = useState(null);
   const { state, dispatch }   = useEnrollment();
+  const { student }           = useAuth();
 
   useEffect(() => {
     fetchCourses()
@@ -31,7 +33,7 @@ const CourseList = () => {
     }
 
     try {
-      const res = await enrollCourse({ course_id, section, selected_credits });
+      const res = await enrollCourse({ student_id: student.id, course_id, section, selected_credits });
       const course = courses.find((c) => c.id === course_id);
 
       dispatch({
